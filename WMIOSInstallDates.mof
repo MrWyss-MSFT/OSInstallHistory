@@ -1,0 +1,13 @@
+[SMS_Report(TRUE),
+    SMS_Group_Name("OS Install History"),
+    SMS_Class_ID("Custom|OS Install History|1.0"),
+    Namespace("\\\\\\\\.\\\\root\\\\cimv2")]
+class CM_OSInstallHistory : SMS_Class_Template
+{
+    [SMS_Report(TRUE), key]
+    string ReleaseID;
+    [SMS_Report(TRUE)]
+    datetime InstallDate;
+    [SMS_Report(TRUE)]
+    uint16 Index;
+};
