@@ -63,7 +63,7 @@ Reporting\SSRS\OS_Initial_Install_Date.rdl
 
 Shows details of Current OS, OS History, Partitioning, HW Details, etc.. of a given computer
 
-![Alt text](/res/OS_Install_Dashboard_for_machine.png "OS install Dashboard for machine")
+![Alt text](/res/OS_Install_Dashboard_for_machine.PNG "OS install Dashboard for machine")
 Reporting\SSRS\Computer_Install_Dates.rdl
 
 ## TODO
