@@ -1,13 +1,13 @@
 # Introduction
 
 Windows (10) in-place Upgrades change/overrides Win32_OperatingSystem.InstallDate. (Original Install Date)
-This makes it hard to find the original installation date of the machine.
+This makes it hard to find the original installation date or to see the history of in-place upgrades performed on your Win10 machines.
 
 It turns out that in-place Upgrades process does make a copy of Computer\HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion to Computer\HKEY_LOCAL_MACHINE\SYSTEM\Setup (Source OS + Date).
 
 This **Framework**, consisting of a PowerShell script, a mof file and RDL Files (Reports) will help you to gather all the OS’s previously and currently installed on the machine via a ConfigMgr/SCCM Configuration Item/Baseline.
 
-The PowerShell script (Set-OSInstallHistoryToWMI.ps1) is meant to be a discovery script of a Compliance Item and the MOF file will be used to gather the Date in WMI made be the discovery script.
+The PowerShell script (Set-OSInstallHistoryToWMI.ps1) is meant to be a discovery script of a Compliance Item. It will create a WMI instance with all reviously and currently installed Feature Updates including their installation date. The MOF file is the wmi class defintion that allows you to gather the information with a hardware inventory cycle.
 
 ## Getting Started
 
@@ -23,7 +23,7 @@ To quickly check on a client how many and when In-Place Upgrades have been perfo
 
 ### Compliance Item
 
-Give it a meaningful name and description.
+Create a Compliance Item. Give it a meaningful name and description.
 Edit Script, set the script language to PowerShell and browse to Set-OSinstallHistoryToWMI.ps1
 
 On the compliance rule setting, set change it to equals compliant
