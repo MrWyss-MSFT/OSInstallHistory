@@ -18,6 +18,10 @@ To quickly check on a client how many and when In-Place Upgrades have been perfo
 ```powershell
 ./Set-OSInstallHistoryToWMI.ps1 -ViewOnly
 ```
+or
+```powershell
+./Set-OSInstallHistoryToWMI.ps1 -ViewOnly -PSDate
+```
 
 ![Alt text](/res/StandAloneScript.png "Stand Alone Script")
 
@@ -67,7 +71,7 @@ Shows details of Current OS, OS History, Partitioning, HW Details, etc.. of a gi
 Reporting\SSRS\Computer_Install_Dates.rdl
 
 ## TODO
-
+- [x] Adding an option to return date in human readable
 - [ ] Spellchecking, Wording and Validation
 - [ ] More Reports
 - [ ] Tests

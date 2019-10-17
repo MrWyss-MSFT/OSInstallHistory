@@ -37,8 +37,8 @@
 .NOTES  
     File Name   : Set-OSInstallHistoryToWMI.ps1
     Author      : marius.wyss@microsoft.com
-    Version     : 2
-    ChangeLog   : Win10 RTM to report back 1507 instead of ProductName
+    Version     : 3
+    ChangeLog   : Added PSDate Option
 
 .Example
     Set-OSInstallHistoryToWMI.ps1
@@ -55,6 +55,18 @@
     20151114143823.000000+060 1511          0
     20160802202109.000000+120 1607          1
     20170407184532.000000+120 1703          2
+
+.Example
+    Set-OSInstallHistoryToWMI.ps1 -ViewOnly -PSDate
+    Returns array of OS History with Powershell DateTime
+    
+    e.g.
+    InstallDate               ReleaseId Index
+    -----------               --------- -----
+    14/11/2015 05:48:50       1511          0
+    22/08/2016 09:08:01       1607          1
+    07/04/2017 18:48:23       1703          2
+
 .Example
     Set-OSInstallHistoryToWMI.ps1 -RemoveWMIClass
 
@@ -70,7 +82,13 @@ param(
     
     [Parameter(Mandatory = $false,
         HelpMessage = "Removes the WMI Class")]
-    [switch]$RemoveWMIClass
+    [switch]$RemoveWMIClass,
+    
+    [Parameter(Mandatory = $false,
+    ValueFromPipelineByPropertyName = $true,
+    Position = 1,
+    HelpMessage = "Return DateTime instead of CimDate")]
+    [switch]$PSDate
 )
 
 # If Changed MOF file needs to be corrected accodingly
@@ -137,7 +155,14 @@ function Get-InstallDateAsCIMDate() {
         [Parameter(Mandatory = $true,
             ValueFromPipelineByPropertyName = $true,
             Position = 0)]
-        [string] $RegKeyPath
+            [string] $RegKeyPath,
+
+        [Parameter(Mandatory = $false,
+            ValueFromPipelineByPropertyName = $true,
+            Position = 1,
+            HelpMessage = "Return DateTime instead of CimDate")]
+            [switch]$PSDate
+
     )
 
     $Value = "InstallDate"
@@ -147,7 +172,12 @@ function Get-InstallDateAsCIMDate() {
     catch {
         $InstallDate = 0
     }
-    return $(Convert-CimDate -date $(Convert-UnixTimeToDateTime -unixtime $InstallDate))
+    If ($PSDate.IsPresent -eq $true) {
+        return $(Convert-UnixTimeToDateTime -unixtime $InstallDate)
+        
+    } else {
+        return $(Convert-CimDate -date $(Convert-UnixTimeToDateTime -unixtime $InstallDate))
+    }
 }
  
 function Get-ReleaseID() {
@@ -225,6 +255,13 @@ function Get-OSInstallDates() {
   .DESCRIPTION
       Return an Object with InstallDates as CIM-Date, ReleaseID as String, Index as uint16 of each OS that was Installed sorted by Date
   #>
+
+  param(
+    [Parameter(Mandatory = $false,
+        HelpMessage = "Returns Dates in Powershell format instead of WMI")]
+    [switch]$PSDate
+    
+ )
     [OutputType([Object[]])]
 
     $InstallDates = @()
@@ -236,7 +273,12 @@ function Get-OSInstallDates() {
  
         ForEach ($SubKey in $SubKeys) {
             $temp = New-Object -TypeName PSObject
-            $temp | Add-Member -Type NoteProperty -Name InstallDate -Value $(Get-InstallDateAsCIMDate -RegKeyPath $SubKey.PSPath)
+            If ($PSDate.IsPresent -eq $True) {
+                $temp | Add-Member -Type NoteProperty -Name InstallDate -Value $(Get-InstallDateAsCIMDate -RegKeyPath $SubKey.PSPath -PSDate)
+            } else {
+                $temp | Add-Member -Type NoteProperty -Name InstallDate -Value $(Get-InstallDateAsCIMDate -RegKeyPath $SubKey.PSPath)
+            }
+            
             $temp | Add-Member -Type NoteProperty -Name ReleaseId -Value $(Get-ReleaseID -RegKeyPath $SubKey.PSPath)
             $temp | Add-Member -Type NoteProperty -Name Index -Value $Count
 
@@ -249,7 +291,11 @@ function Get-OSInstallDates() {
     $CurPath = "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion"
     If (Test-Path -Path $CurPath) {
         $temp = New-Object -TypeName PSObject
-        $temp | Add-Member -Type NoteProperty -Name InstallDate -Value $(Get-InstallDateAsCIMDate -RegKeyPath $CurPath)
+        If ($PSDate.IsPresent -eq $True) {
+            $temp | Add-Member -Type NoteProperty -Name InstallDate -Value $(Get-InstallDateAsCIMDate -RegKeyPath $CurPath -PSDate)
+        } else {
+            $temp | Add-Member -Type NoteProperty -Name InstallDate -Value $(Get-InstallDateAsCIMDate -RegKeyPath $CurPath)
+        }
         $temp | Add-Member -Type NoteProperty -Name ReleaseId -Value $(Get-ReleaseID -RegKeyPath $CurPath)
         $temp | Add-Member -Type NoteProperty -Name Index -Value $Count
 
@@ -345,5 +391,9 @@ elseif ($RemoveWMIClass.IsPresent) {
     }
 }
 else {
-    Get-OSInstallDates
+    If ($PSDate.IsPresent -eq $true) {
+        Get-OSInstallDates -PSDate
+    } else {
+        Get-OSInstallDates
+    }
 }
