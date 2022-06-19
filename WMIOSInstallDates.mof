@@ -5,9 +5,13 @@
 class CM_OSInstallHistory : SMS_Class_Template
 {
     [SMS_Report(TRUE), key]
-    string ReleaseID;
+    uint16 Index;
     [SMS_Report(TRUE)]
     datetime InstallDate;
     [SMS_Report(TRUE)]
-    uint16 Index;
+    string OS;
+    [SMS_Report(TRUE)]
+    string Version;
+    [SMS_Report(TRUE)]
+    string BuildNumber;
 };
