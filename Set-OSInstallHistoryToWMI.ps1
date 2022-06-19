@@ -13,14 +13,16 @@
     Default (script run without switches)
     --------------
     Gathers OS History Information, such as in InstallDate and ReleaseID. Works with Machines that were 
-    Upgraded from Win7 to Win8/8.1, Win7 to Win10, Win8/8.1 to Win10 or not at all. Per OS History entity
+    Upgraded from Win7 to Win8/8.1, Win7 to Win10/11, Win8/8.1 to Win10/11 or not at all. Per OS History entity
     it will create an instance in the custom created WMI Class. e.g. 
 
-    InstallDate               ReleaseId Index
-    -----------               --------- -----
-    20151114143823.000000+060 1511          0
-    20160802202109.000000+120 1607          1
-    20170407184532.000000+120 1703          2
+    Index InstallDate     CimInstallDate            OS         Version BuildNumber CodeName
+    ----- -----------     --------------            --         ------- ----------- --------
+    0 20/03/2019 06:36:50 20190320063650.000000+060 Windows 10 1809    17763       Redstone 5 (rs5)
+    1 26/05/2019 17:53:49 20190526175349.000000+120 Windows 10 1909    18363       19H1 (19h1)
+    2 16/06/2020 23:00:35 20200616230035.000000+120 Windows 10 20H2    19042       Vibranium (vb)
+    3 25/02/2021 10:07:11 20210225100711.000000+060 Windows 10 21H1    19043       Vibranium (vb)
+    4 05/10/2021 09:49:40 20211005094940.000000+120 Windows 11 21H2    22000       Cobalt (co)
     
     If it was able to do so the script would return Compliant with exit code 0, 
     if not an non zero exit will be return with a short error description
@@ -37,8 +39,7 @@
 .NOTES  
     File Name   : Set-OSInstallHistoryToWMI.ps1
     Author      : marius.wyss@microsoft.com
-    Version     : 3
-    ChangeLog   : Added PSDate Option
+    Version     : 4
 
 .Example
     Set-OSInstallHistoryToWMI.ps1
@@ -50,22 +51,14 @@
     Returns array of OS History
     
     e.g.
-    InstallDate               ReleaseId Index
-    -----------               --------- -----
-    20151114143823.000000+060 1511          0
-    20160802202109.000000+120 1607          1
-    20170407184532.000000+120 1703          2
+    Index InstallDate     CimInstallDate            OS         Version BuildNumber CodeName
+    ----- -----------     --------------            --         ------- ----------- --------
+    0 20/03/2019 06:36:50 20190320063650.000000+060 Windows 10 1809    17763       Redstone 5 (rs5)
+    1 26/05/2019 17:53:49 20190526175349.000000+120 Windows 10 1909    18363       19H1 (19h1)
+    2 16/06/2020 23:00:35 20200616230035.000000+120 Windows 10 20H2    19042       Vibranium (vb)
+    3 25/02/2021 10:07:11 20210225100711.000000+060 Windows 10 21H1    19043       Vibranium (vb)
+    4 05/10/2021 09:49:40 20211005094940.000000+120 Windows 11 21H2    22000       Cobalt (co)
 
-.Example
-    Set-OSInstallHistoryToWMI.ps1 -ViewOnly -PSDate
-    Returns array of OS History with Powershell DateTime
-    
-    e.g.
-    InstallDate               ReleaseId Index
-    -----------               --------- -----
-    14/11/2015 05:48:50       1511          0
-    22/08/2016 09:08:01       1607          1
-    07/04/2017 18:48:23       1703          2
 
 .Example
     Set-OSInstallHistoryToWMI.ps1 -RemoveWMIClass
@@ -74,7 +67,6 @@
     functionallity is not needed anymore
 #>
 
-
 param(
     [Parameter(Mandatory = $false,
         HelpMessage = "Returns Array with OS History")]
@@ -82,29 +74,89 @@ param(
     
     [Parameter(Mandatory = $false,
         HelpMessage = "Removes the WMI Class")]
-    [switch]$RemoveWMIClass,
-    
-    [Parameter(Mandatory = $false,
-    ValueFromPipelineByPropertyName = $true,
-    Position = 1,
-    HelpMessage = "Return DateTime instead of CimDate")]
-    [switch]$PSDate
-)
+    [switch]$RemoveWMIClass  
 
-# If Changed MOF file needs to be corrected accodingly
+)
 $ClassName = "CM_OSInstallHistory"
 
-#############
-# Functions #
-#############
+$tbl = @()
+$tbl += New-Object psobject -Property ([Ordered]@{OS = "Windows 7"; Version = "NA"; ReleaseID = "NA"; NTVersion = "6.1"; BuildVersion = "7601"; BaseVersion = ""; CodeName = "Windows 7 (win7)" })
+$tbl += New-Object psobject -Property ([Ordered]@{OS = "Windows 8"; Version = "NA"; ReleaseID = "NA"; NTVersion = "6.2"; BuildVersion = "9200"; BaseVersion = ""; CodeName = "Windows 8 (win8)" })
+$tbl += New-Object psobject -Property ([Ordered]@{OS = "Windows 8.1"; Version = "NA"; ReleaseID = "NA"; NTVersion = "6.3"; BuildVersion = "9600"; BaseVersion = ""; CodeName = "Blue (winblue)" })
+$tbl += New-Object psobject -Property ([Ordered]@{OS = "Windows 10"; Version = "1507"; ReleaseID = "NA"; NTVersion = "6.3 (10.0)"; BuildVersion = "10240"; BaseVersion = ""; CodeName = "Threshold 1 (th1)" })
+$tbl += New-Object psobject -Property ([Ordered]@{OS = "Windows 10"; Version = "1511"; ReleaseID = "1511"; NTVersion = "6.3 (10.0)"; BuildVersion = "10586"; BaseVersion = ""; CodeName = "Threshold 2 (th2)" })
+$tbl += New-Object psobject -Property ([Ordered]@{OS = "Windows 10"; Version = "1607"; ReleaseID = "1607"; NTVersion = "6.3 (10.0)"; BuildVersion = "14393"; BaseVersion = ""; CodeName = "Redstone 1 (rs1)" })
+$tbl += New-Object psobject -Property ([Ordered]@{OS = "Windows 10"; Version = "1703"; ReleaseID = "1703"; NTVersion = "6.3 (10.0)"; BuildVersion = "15063"; BaseVersion = ""; CodeName = "Redstone 2 (rs2)" })
+$tbl += New-Object psobject -Property ([Ordered]@{OS = "Windows 10"; Version = "1709"; ReleaseID = "1709"; NTVersion = "6.3 (10.0)"; BuildVersion = "16299"; BaseVersion = ""; CodeName = "Redstone 3 (rs3)" })
+$tbl += New-Object psobject -Property ([Ordered]@{OS = "Windows 10"; Version = "1803"; ReleaseID = "1803"; NTVersion = "6.3 (10.0)"; BuildVersion = "17134"; BaseVersion = ""; CodeName = "Redstone 4 (rs4)" })
+$tbl += New-Object psobject -Property ([Ordered]@{OS = "Windows 10"; Version = "1809"; ReleaseID = "1809"; NTVersion = "6.3 (10.0)"; BuildVersion = "17763"; BaseVersion = ""; CodeName = "Redstone 5 (rs5)" })
+$tbl += New-Object psobject -Property ([Ordered]@{OS = "Windows 10"; Version = "1903"; ReleaseID = "1903"; NTVersion = "6.3 (10.0)"; BuildVersion = "18362"; BaseVersion = ""; CodeName = "19H1 (19h1)" })
+$tbl += New-Object psobject -Property ([Ordered]@{OS = "Windows 10"; Version = "1909"; ReleaseID = "1903"; NTVersion = "6.3 (10.0)"; BuildVersion = "18363"; BaseVersion = "18352"; CodeName = "19H1 (19h1)" })
+$tbl += New-Object psobject -Property ([Ordered]@{OS = "Windows 10"; Version = "2004"; ReleaseID = "2004"; NTVersion = "6.3 (10.0)"; BuildVersion = "19041"; BaseVersion = ""; CodeName = "Vibranium (vb)" })
+$tbl += New-Object psobject -Property ([Ordered]@{OS = "Windows 10"; Version = "20H2"; ReleaseID = "2009"; NTVersion = "6.3 (10.0)"; BuildVersion = "19042"; BaseVersion = "19041"; CodeName = "Vibranium (vb)" })
+$tbl += New-Object psobject -Property ([Ordered]@{OS = "Windows 10"; Version = "21H1"; ReleaseID = "2009"; NTVersion = "6.3 (10.0)"; BuildVersion = "19043"; BaseVersion = "19041"; CodeName = "Vibranium (vb)" })
+$tbl += New-Object psobject -Property ([Ordered]@{OS = "Windows 10"; Version = "21H2"; ReleaseID = "2009"; NTVersion = "6.3 (10.0)"; BuildVersion = "19044"; BaseVersion = "19041"; CodeName = "Vibranium (vb)" })
+$tbl += New-Object psobject -Property ([Ordered]@{OS = "Windows 11"; Version = "21H2"; ReleaseID = "2009"; NTVersion = "6.3 (10.0)"; BuildVersion = "22000"; BaseVersion = "19041"; CodeName = "Cobalt (co)" })
+
+#region Helper Functions
+
+Function Get-OsInfoLocation {
+    <#
+    .SYNOPSIS
+      Returns OS Information Registry locations
+    .DESCRIPTION
+      Returns OS Information Registry locations including the current OS Path. 
+    #>
+    $OldSearchPath = 'HKLM:\SYSTEM\Setup\Source OS*'
+    If (Test-Path $OldSearchPath) {
+        $SubKeys = Get-ItemProperty -Path $OldSearchPath -Name "InstallDate" | Sort-Object InstallDate
+ 
+    }
+    $CurPath = "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion"
+    $CurrentReg = Get-Item -Path $CurPath 
+    $SubKeys += $CurrentReg
+    return $SubKeys
+}
+
+function Get-Value() {
+    <#
+    .SYNOPSIS
+      Gets Registry Value
+    .DESCRIPTION
+      Gets a Registry Value from a given Path and ValueName. If not found it Returns N/A.
+    #>
+
+    [OutputType([String])]
+    param(
+        [Parameter(Mandatory = $true)]
+        [string] $RegKeyPath,
+        [Parameter(Mandatory = $true)]
+        [string] $ValueName
+    )
+    if (Test-Path -Path $RegKeyPath) {
+        try {
+            $ret = Get-ItemProperty -Path $RegKeyPath | Select-Object -ExpandProperty $ValueName -ErrorAction Stop
+        }
+        catch {
+            $ret = ""
+        }
+
+        If ($ret -ne "") {
+            return $ret
+        }
+        else {
+            return "N/A"
+        }
+    }
+}
 
 function Convert-UnixTimeToDateTime() {
     <#
-  .SYNOPSIS
+    .SYNOPSIS
       Converts Unix Time to Date Time Format
-  .DESCRIPTION
+    .DESCRIPTION
       Converts Unix Time to Date Time Format, helpfull for unixtime read from registry
-  #>
+    #>
     [Alias('cuttdt')]
     [OutputType([datetime])]
     param(
@@ -118,7 +170,7 @@ function Convert-UnixTimeToDateTime() {
     return [TimeZone]::CurrentTimeZone.ToLocalTime(([datetime]'1/1/1970').AddSeconds($unixtime))
 }
 
-function Convert-CimDate() {
+function ConvertTo-CimDate() {
     <#
   .SYNOPSIS
       Converts TimeDate to CIM Date Format in order to save it to WMI
@@ -141,169 +193,6 @@ function Convert-CimDate() {
     return [string] $CimDate
 }
 
-function Get-InstallDateAsCIMDate() {
-    <#
-  .SYNOPSIS
-      Returns the InstallDate regkey as Cim Date of a given RegKey Path
-  .DESCRIPTION
-      Returns the InstallDate regkey as Cim Date of a given RegKey Path, Convert-CimDate and Convert-UnixTimeToDateTime required
-  #>
-    [Alias('gidc')]
-    [OutputType([String])]
-    param(
-        # Regkey String e.g. "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion"
-        [Parameter(Mandatory = $true,
-            ValueFromPipelineByPropertyName = $true,
-            Position = 0)]
-            [string] $RegKeyPath,
-
-        [Parameter(Mandatory = $false,
-            ValueFromPipelineByPropertyName = $true,
-            Position = 1,
-            HelpMessage = "Return DateTime instead of CimDate")]
-            [switch]$PSDate
-
-    )
-
-    $Value = "InstallDate"
-    try {
-        $InstallDate = (Get-ItemProperty -Path $RegKeyPath | Select-Object -ExpandProperty $Value -ErrorAction Stop)
-    }
-    catch {
-        $InstallDate = 0
-    }
-    If ($PSDate.IsPresent -eq $true) {
-        return $(Convert-UnixTimeToDateTime -unixtime $InstallDate)
-        
-    } else {
-        return $(Convert-CimDate -date $(Convert-UnixTimeToDateTime -unixtime $InstallDate))
-    }
-}
- 
-function Get-ReleaseID() {
-    <#
-  .SYNOPSIS
-      Returns ReleaseID of Win10, ProductName + CSDVersion of Win7, ProductName of Win8/8.1
-  .DESCRIPTION
-      Returns ReleaseID of Win10, ProductName + CSDVersion of Win7, ProductName of Win8/8.1
-  #>
-    [Alias('grid')]
-    [OutputType([String])]
-    param(
-        # Regkey String e.g. "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion"
-        [Parameter(Mandatory = $true,
-            ValueFromPipelineByPropertyName = $true,
-            Position = 0)]
-        [string] $RegKeyPath
-    )
-
-    $value = "ReleaseID"
-    if (Test-Path -Path $RegKeyPath) {
-        # Try to get ReleaseID Win10 only
-        try {
-            $ReleaseID = Get-ItemProperty -Path $RegKeyPath | Select-Object -ExpandProperty "ReleaseID" -ErrorAction Stop
-        }
-        catch {
-            $ReleaseID = ""
-        }
-
-        # Try to get ProductName all OSs
-        try {
-            $ProductName = Get-ItemProperty -Path $RegKeyPath | Select-Object -ExpandProperty "ProductName" -ErrorAction Stop 
-        }
-        catch {
-            $ProductName = ""
-        }
-
-        # Try to get CSDVersion Win7 only
-        try {
-            $CSDVersion = Get-ItemProperty -Path $RegKeyPath | Select-Object -ExpandProperty "CSDVersion" -ErrorAction stop 
-        }
-        catch {
-            $CSDVersion = ""
-        }
-  
-        # Win10 1511 and higher
-        If ($ReleaseID -ne "") {
-            return $ReleaseID
-        }
-  
-        # Win8/8.1 and Win10 1507
-        elseif ($ReleaseID -eq "" -and $CSDVersion -eq "" -and $ProductName -ne "") {
-            if ($ProductName -like "Windows 10*") {
-                return "1507"
-            } else {
-                return $ProductName
-            }
-        }
-
-        # Win7
-        elseif ($ReleaseID -eq "" -and $CSDVersion -ne "" -and $ProductName -ne "") {
-            return "$ProductName $CSDVersion"
-        }
-        # Error
-        else {
-            return "Error Getting ReleaseID"
-        }
-    }
-}
-
-function Get-OSInstallDates() {
-    <#
-  .SYNOPSIS
-      Return an Object with OS History Information
-  .DESCRIPTION
-      Return an Object with InstallDates as CIM-Date, ReleaseID as String, Index as uint16 of each OS that was Installed sorted by Date
-  #>
-
-  param(
-    [Parameter(Mandatory = $false,
-        HelpMessage = "Returns Dates in Powershell format instead of WMI")]
-    [switch]$PSDate
-    
- )
-    [OutputType([Object[]])]
-
-    $InstallDates = @()
-    [uint16]$Count = 0
-
-    # Machine was Upgraded Win7 to Win8/8.1, Win7 to Win10, Win8/8.1 to Win10
-    If (Test-Path 'HKLM:\SYSTEM\Setup\Source OS*') {
-        $SubKeys = Get-ItemProperty -Path 'HKLM:\SYSTEM\Setup\Source OS*' -Name "InstallDate" | Sort-Object InstallDate
- 
-        ForEach ($SubKey in $SubKeys) {
-            $temp = New-Object -TypeName PSObject
-            If ($PSDate.IsPresent -eq $True) {
-                $temp | Add-Member -Type NoteProperty -Name InstallDate -Value $(Get-InstallDateAsCIMDate -RegKeyPath $SubKey.PSPath -PSDate)
-            } else {
-                $temp | Add-Member -Type NoteProperty -Name InstallDate -Value $(Get-InstallDateAsCIMDate -RegKeyPath $SubKey.PSPath)
-            }
-            
-            $temp | Add-Member -Type NoteProperty -Name ReleaseId -Value $(Get-ReleaseID -RegKeyPath $SubKey.PSPath)
-            $temp | Add-Member -Type NoteProperty -Name Index -Value $Count
-
-            $InstallDates += $temp
-
-            $Count++
-        }
-    }
-    #Current OS 
-    $CurPath = "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion"
-    If (Test-Path -Path $CurPath) {
-        $temp = New-Object -TypeName PSObject
-        If ($PSDate.IsPresent -eq $True) {
-            $temp | Add-Member -Type NoteProperty -Name InstallDate -Value $(Get-InstallDateAsCIMDate -RegKeyPath $CurPath -PSDate)
-        } else {
-            $temp | Add-Member -Type NoteProperty -Name InstallDate -Value $(Get-InstallDateAsCIMDate -RegKeyPath $CurPath)
-        }
-        $temp | Add-Member -Type NoteProperty -Name ReleaseId -Value $(Get-ReleaseID -RegKeyPath $CurPath)
-        $temp | Add-Member -Type NoteProperty -Name Index -Value $Count
-
-        $InstallDates += $temp
-    }
-    return $InstallDates
-}
-
 function Set-OSHistoryWMIClass() {
     <#
   .SYNOPSIS
@@ -323,63 +212,30 @@ function Set-OSHistoryWMIClass() {
     $newClass = New-Object System.Management.ManagementClass("root\cimv2", [String]::Empty, $null); 
     $newClass["__CLASS"] = $ClassName;
 
-    $newClass.Properties.Add("ReleaseID", [System.Management.CimType]::String, $false)
-    $newClass.Properties["ReleaseID"].Qualifiers.Add("key", $true)
-    $newClass.Properties["ReleaseID"].Qualifiers.Add("read", $true)
-    $newClass.Properties["ReleaseID"].Qualifiers.Add("Description", "OS Release ID")
+    $newClass.Properties.Add("Index", [System.Management.CimType]::UInt16, $false)
+    $newClass.Properties["Index"].Qualifiers.Add("key", $true)
+    $newClass.Properties["Index"].Qualifiers.Add("read", $true)
+    $newClass.Properties["Index"].Qualifiers.Add("Description", "Index 0 is the oldest")
 
     $newClass.Properties.Add("InstallDate", [System.Management.CimType]::DateTime, $false)
     $newClass.Properties["InstallDate"].Qualifiers.Add("read", $true)
     $newClass.Properties["InstallDate"].Qualifiers.Add("Description", "Original Install Date")
+    
+    $newClass.Properties.Add("OS", [System.Management.CimType]::String, $false)
+    $newClass.Properties["OS"].Qualifiers.Add("read", $true)
+    $newClass.Properties["OS"].Qualifiers.Add("Description", "OS Name")
 
-    $newClass.Properties.Add("Index", [System.Management.CimType]::UInt16, $false)
-    $newClass.Properties["Index"].Qualifiers.Add("read", $true)
-    $newClass.Properties["Index"].Qualifiers.Add("Description", "Index 0 is the oldest")
+    $newClass.Properties.Add("Version", [System.Management.CimType]::String, $false)
+    $newClass.Properties["Version"].Qualifiers.Add("read", $true)
+    $newClass.Properties["Version"].Qualifiers.Add("Description", "OS Version")
+
+    $newClass.Properties.Add("BuildNumber", [System.Management.CimType]::String, $false)
+    $newClass.Properties["BuildNumber"].Qualifiers.Add("read", $true)
+    $newClass.Properties["BuildNumber"].Qualifiers.Add("Description", "OS Build Number")
 
     $newClass.Put() | out-null
-}
-
-function CIMode () {
-    <#
-  .SYNOPSIS
-      Creates a Custom WMI Class specific for OSHistory and returns Compliant for a SCCM  CI Item 
-  .DESCRIPTION
-      Creates a Custom WMI Class specific for OSHistory, removes it if it is already there, and fill it with the following 
-      Properties ReleaseID, InstallDate and Index if all worked Script Exits with 0 and returns Compliant
-  #>
-   
-    #Create Custom WMI Class
-    [void](Get-WMIObject $ClassName -ErrorAction SilentlyContinue -ErrorVariable wmiclasserror)
-    if ($wmiclasserror) {
-        try { Set-OSHistoryWMIClass -ClassName $ClassName }
-        catch {
-            "Could not create WMI class"
-            Exit 1
-        }
-    }
-    Get-WmiObject $ClassName | Remove-WmiObject
-
-    $OSs = Get-OSInstallDates
-
-    #Fill create instances for the WMI Class
-    ForEach ($OS in $OSs) {
-        Try { [void](Set-WmiInstance -Path "\\.\root\cimv2:$ClassName" -Arguments @{InstallDate = $OS.InstallDate; ReleaseId = $OS.ReleaseId; Index = $OS.Index} -ErrorAction stop) 
-        }
-        Catch {
-            "Could not write into WMI class"
-            Exit 1
-        }
-    }
-    "Compliant"
-    Exit 0
-}
-
-
-#Parse cmdlet switches
-If ($ViewOnly.IsPresent -eq $false) {
-    CIMode
 } 
-elseif ($RemoveWMIClass.IsPresent) {
+Function Remove-WMIClass {
     try {
         Remove-WmiObject -Class $ClassName -ErrorAction Stop #Delete The whole class
     }
@@ -390,10 +246,89 @@ elseif ($RemoveWMIClass.IsPresent) {
         exit 1
     }
 }
-else {
-    If ($PSDate.IsPresent -eq $true) {
-        Get-OSInstallDates -PSDate
-    } else {
-        Get-OSInstallDates
+
+
+Function Get-OsInstallInfo {
+    <#
+    .SYNOPSIS
+      Returns OS Install Info array
+    .DESCRIPTION
+      Returns OS Install Info array with OS information such as InstallDate, OS, BuildNumber
+    #>
+    $OSInfos = @() #array
+    $OsInfoLocations = Get-OsInfoLocation
+    
+    [uint16]$Count = 0
+    
+    foreach ($OsLoc in ($OsInfoLocations | Sort-Object Property.InstallDate)) {
+        $temp = New-Object -TypeName PSObject
+        $temp | Add-Member -Type NoteProperty -Name Index -Value $Count
+        $temp | Add-Member -Type NoteProperty -Name InstallDate -Value $(Convert-UnixTimeToDateTime((Get-Value -RegKeyPath $($OsLoc.PSPath) -ValueName 'InstallDate')))
+        $temp | Add-Member -Type NoteProperty -Name CimInstallDate -Value $(ConvertTo-CimDate $(Convert-UnixTimeToDateTime((Get-Value -RegKeyPath $($OsLoc.PSPath) -ValueName 'InstallDate'))))
+        $temp | Add-Member -Type NoteProperty -Name OS -Value $($tbl | Where-Object BuildVersion -eq ($(Get-Value -RegKeyPath $($OsLoc.PSPath) -ValueName 'CurrentBuildNumber'))).OS
+        $temp | Add-Member -Type NoteProperty -Name Version -Value $($tbl | Where-Object BuildVersion -eq ($(Get-Value -RegKeyPath $($OsLoc.PSPath) -ValueName 'CurrentBuildNumber'))).Version
+        $temp | Add-Member -Type NoteProperty -Name BuildNumber -Value $(Get-Value -RegKeyPath $($OsLoc.PSPath) -ValueName 'CurrentBuildNumber')
+        $temp | Add-Member -Type NoteProperty -Name CodeName -Value $($tbl | Where-Object BuildVersion -eq ($(Get-Value -RegKeyPath $($OsLoc.PSPath) -ValueName 'CurrentBuildNumber'))).CodeName
+        #$temp | Add-Member -Type NoteProperty -Name ReleaseId -Value $(Get-Value -RegKeyPath $($OsLoc.PSPath) -ValueName 'ReleaseId')
+        #$temp | Add-Member -Type NoteProperty -Name BuildBranch -Value $(Get-Value -RegKeyPath $($OsLoc.PSPath) -ValueName 'BuildBranch')
+        #$temp | Add-Member -Type NoteProperty -Name DisplayVersion -Value $(Get-Value -RegKeyPath $($OsLoc.PSPath) -ValueName 'DisplayVersion')
+        #$temp | Add-Member -Type NoteProperty -Name CompositionEditionID -Value $(Get-Value -RegKeyPath $($OsLoc.PSPath) -ValueName 'CompositionEditionID')
+        #$temp | Add-Member -Type NoteProperty -Name ProductName -Value $(Get-Value -RegKeyPath $($OsLoc.PSPath) -ValueName 'ProductName')
+        #$temp | Add-Member -Type NoteProperty -Name CurrentVersion -Value $(Get-Value -RegKeyPath $($OsLoc.PSPath) -ValueName 'CurrentVersion')
+        $Count++
+        $OSInfos += $temp
+    
     }
+    return $OSInfos
 }
+#endregion
+function CIMode () {
+    <#
+  .SYNOPSIS
+      Creates a Custom WMI Class specific for OSHistory and returns Compliant for a SCCM  CI Item 
+  .DESCRIPTION
+      Creates a Custom WMI Class specific for OSHistory, removes it if it is already there, and fill it with the following 
+      Properties ReleaseID, InstallDate and Index if all worked Script Exits with 0 and returns Compliant
+  #>
+   
+    #Create Custom WMI Class
+    [void](Get-CimClass $ClassName -ErrorAction SilentlyContinue -ErrorVariable wmiclasserror)
+    if (!($wmiclasserror)) {
+        Remove-WMIClass
+    }
+    try { Set-OSHistoryWMIClass -ClassName $ClassName }
+    catch {
+        "Could not create WMI class"
+        Exit 1
+    }
+    
+    $OSs = Get-OsInstallInfo
+
+    #Fill create instances for the WMI Class
+    ForEach ($OS in $OSs) {
+        Try {
+            [void](Set-WmiInstance -Path "\\.\root\cimv2:$ClassName" -Arguments @{Index = $OS.Index; InstallDate = $OS.CimInstallDate; OS = $OS.OS; Version = $OS.Version; BuildNumber = $OS.BuildNumber } -ErrorAction stop) 
+        }
+        Catch {
+            "Could not write into WMI class"
+            Exit 1
+        }
+    }
+    "Compliant"
+    Exit 0
+}
+
+#region Business Logic
+
+If ($ViewOnly.IsPresent) {
+    Get-OsInstallInfo | Format-Table
+}
+
+If (($ViewOnly.IsPresent -eq $false) -and ($RemoveWMIClass.IsPresent -eq $false)) {
+    CIMode
+}
+
+If ($RemoveWMIClass.IsPresent) {
+    Remove-WMIClass
+}
+#endregion

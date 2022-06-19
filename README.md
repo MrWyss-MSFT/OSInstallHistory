@@ -1,7 +1,7 @@
 # Introduction
 
-Windows (10) in-place Upgrades change/overrides Win32_OperatingSystem.InstallDate. (Original Install Date)
-This makes it hard to find the original installation date or to see the history of in-place upgrades performed on your Win10 machines.
+Windows (10/11) in-place Upgrades change/overrides Win32_OperatingSystem.InstallDate. (Original Install Date)
+This makes it hard to find the original installation date or to see the history of in-place upgrades performed on your Win10/11 machines.
 
 It turns out that in-place Upgrades process does make a copy of Computer\HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion to Computer\HKEY_LOCAL_MACHINE\SYSTEM\Setup (Source OS + Date).
 
@@ -17,10 +17,6 @@ To quickly check on a client how many and when In-Place Upgrades have been perfo
 
 ```powershell
 ./Set-OSInstallHistoryToWMI.ps1 -ViewOnly
-```
-or
-```powershell
-./Set-OSInstallHistoryToWMI.ps1 -ViewOnly -PSDate
 ```
 
 ![Alt text](/res/StandAloneScript.png "Stand Alone Script")
@@ -71,11 +67,9 @@ Shows details of Current OS, OS History, Partitioning, HW Details, etc.. of a gi
 Reporting\SSRS\Computer_Install_Dates.rdl
 
 ## TODO
-- [x] Adding an option to return date in human readable
 - [ ] Spellchecking, Wording and Validation
 - [ ] More Reports
 - [ ] Tests
-- [ ] Documentation
 
 ## Contribute
 

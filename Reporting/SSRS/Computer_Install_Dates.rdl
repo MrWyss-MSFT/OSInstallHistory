@@ -1,10 +1,10 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Report xmlns:rd="http://schemas.microsoft.com/SQLServer/reporting/reportdesigner" xmlns:cl="http://schemas.microsoft.com/sqlserver/reporting/2010/01/componentdefinition" xmlns="http://schemas.microsoft.com/sqlserver/reporting/2010/01/reportdefinition">
+<Report xmlns="http://schemas.microsoft.com/sqlserver/reporting/2016/01/reportdefinition" xmlns:rd="http://schemas.microsoft.com/SQLServer/reporting/reportdesigner">
   <Description>This report shows security scopes and which Configuration Manager administrative users and security groups are associated with each security scope.</Description>
   <AutoRefresh>0</AutoRefresh>
   <DataSources>
     <DataSource Name="AutoGen_34AC0210_3070_49e9_8DFC_517029284F5F">
-      <DataSourceReference>/ConfigMgr_CAZ/{5C6358F2-4BB6-4a1b-A16E-8D96795D8602}</DataSourceReference>
+      <DataSourceReference>/ConfigMgr_PR1/{5C6358F2-4BB6-4a1b-A16E-8D96795D8602}</DataSourceReference>
       <rd:SecurityType>None</rd:SecurityType>
       <rd:DataSourceID>a796260d-911e-45ba-bd6f-8a3f4da3c4c4</rd:DataSourceID>
     </DataSource>
@@ -56,7 +56,8 @@ JOIN
 	fn_rbac_GS_OPERATING_SYSTEM(@UserSIDs)  OPSYS on SYS.ResourceID=OPSYS.ResourceID 
 JOIN 
 	fn_rbac_GS_PROCESSOR(@UserSIDs)  Processor on SYS.ResourceID=Processor.ResourceID 
-WHERE SYS.ResourceID = @ResourceID  </CommandText>
+WHERE SYS.ResourceID = @ResourceID</CommandText>
+        <rd:UseGenericDesigner>true</rd:UseGenericDesigner>
       </Query>
       <Fields>
         <Field Name="Netbios_Name0">
@@ -73,15 +74,15 @@ WHERE SYS.ResourceID = @ResourceID  </CommandText>
         </Field>
         <Field Name="TotalPhysicalMemory0">
           <DataField>TotalPhysicalMemory0</DataField>
-          <rd:TypeName>System.Int32</rd:TypeName>
+          <rd:TypeName>System.Int64</rd:TypeName>
         </Field>
         <Field Name="TotalPageFileSpace0">
           <DataField>TotalPageFileSpace0</DataField>
-          <rd:TypeName>System.Int32</rd:TypeName>
+          <rd:TypeName>System.Int64</rd:TypeName>
         </Field>
         <Field Name="TotalVirtualMemory0">
           <DataField>TotalVirtualMemory0</DataField>
-          <rd:TypeName>System.Int32</rd:TypeName>
+          <rd:TypeName>System.Int64</rd:TypeName>
         </Field>
         <Field Name="CPUName">
           <DataField>CPUName</DataField>
@@ -128,7 +129,7 @@ WHERE SYS.ResourceID = @ResourceID  </CommandText>
         </QueryParameters>
         <CommandText>SELECT 
 	T1.InstallDate0,
-	T1.ReleaseID0
+	T1.Version0
 FROM [dbo].[v_GS_Custom_OS_Install_History0] AS T1
 INNER JOIN 
 (
@@ -137,14 +138,15 @@ INNER JOIN
 	GROUP BY ResourceID
 ) AS T2
 ON T1.ResourceID = T2.ResourceID AND T1.InstallDate0 = T2.MinInstallDate</CommandText>
+        <rd:UseGenericDesigner>true</rd:UseGenericDesigner>
       </Query>
       <Fields>
         <Field Name="InstallDate0">
           <DataField>InstallDate0</DataField>
           <rd:TypeName>System.DateTime</rd:TypeName>
         </Field>
-        <Field Name="ReleaseID0">
-          <DataField>ReleaseID0</DataField>
+        <Field Name="Version0">
+          <DataField>Version0</DataField>
           <rd:TypeName>System.String</rd:TypeName>
         </Field>
       </Fields>
@@ -158,18 +160,19 @@ ON T1.ResourceID = T2.ResourceID AND T1.InstallDate0 = T2.MinInstallDate</Comman
           </QueryParameter>
         </QueryParameters>
         <CommandText>SELECT 
-	InstallDate0, ReleaseID0
+	InstallDate0, Version0
 FROM [dbo].[v_GS_Custom_OS_Install_History0] AS T1
 where ResourceID = @ResourceID
 order by InstallDate0</CommandText>
+        <rd:UseGenericDesigner>true</rd:UseGenericDesigner>
       </Query>
       <Fields>
         <Field Name="InstallDate0">
           <DataField>InstallDate0</DataField>
           <rd:TypeName>System.DateTime</rd:TypeName>
         </Field>
-        <Field Name="ReleaseID0">
-          <DataField>ReleaseID0</DataField>
+        <Field Name="Version0">
+          <DataField>Version0</DataField>
           <rd:TypeName>System.String</rd:TypeName>
         </Field>
       </Fields>
@@ -1092,7 +1095,7 @@ order by PARTIT.DeviceID0</CommandText>
               <Paragraph>
                 <TextRuns>
                   <TextRun>
-                    <Value>=First(Fields!ReleaseID0.Value, "ds_MinInstallDateInfo")</Value>
+                    <Value>=First(Fields!Version0.Value, "ds_MinInstallDateInfo")</Value>
                     <Style />
                   </TextRun>
                 </TextRuns>
@@ -1259,14 +1262,14 @@ order by PARTIT.DeviceID0</CommandText>
                     </TablixCell>
                     <TablixCell>
                       <CellContents>
-                        <Textbox Name="ReleaseID0">
+                        <Textbox Name="Version0">
                           <CanGrow>true</CanGrow>
                           <KeepTogether>true</KeepTogether>
                           <Paragraphs>
                             <Paragraph>
                               <TextRuns>
                                 <TextRun>
-                                  <Value>=Fields!ReleaseID0.Value</Value>
+                                  <Value>=Fields!Version0.Value</Value>
                                   <Style />
                                 </TextRun>
                               </TextRuns>
@@ -1275,7 +1278,6 @@ order by PARTIT.DeviceID0</CommandText>
                               </Style>
                             </Paragraph>
                           </Paragraphs>
-                          <rd:DefaultName>ReleaseID0</rd:DefaultName>
                           <Style>
                             <Border>
                               <Color>LightGrey</Color>
@@ -1721,12 +1723,35 @@ order by PARTIT.DeviceID0</CommandText>
       </ValidValues>
     </ReportParameter>
   </ReportParameters>
+  <ReportParametersLayout>
+    <GridLayoutDefinition>
+      <NumberOfColumns>2</NumberOfColumns>
+      <NumberOfRows>2</NumberOfRows>
+      <CellDefinitions>
+        <CellDefinition>
+          <ColumnIndex>0</ColumnIndex>
+          <RowIndex>0</RowIndex>
+          <ParameterName>UserTokenSIDs</ParameterName>
+        </CellDefinition>
+        <CellDefinition>
+          <ColumnIndex>1</ColumnIndex>
+          <RowIndex>0</RowIndex>
+          <ParameterName>UserSIDs</ParameterName>
+        </CellDefinition>
+        <CellDefinition>
+          <ColumnIndex>0</ColumnIndex>
+          <RowIndex>1</RowIndex>
+          <ParameterName>ResourceID</ParameterName>
+        </CellDefinition>
+      </CellDefinitions>
+    </GridLayoutDefinition>
+  </ReportParametersLayout>
   <Language>=User!Language</Language>
   <CodeModules>
     <CodeModule>SrsResources, culture=neutral</CodeModule>
   </CodeModules>
   <ConsumeContainerWhitespace>true</ConsumeContainerWhitespace>
   <rd:ReportUnitType>Inch</rd:ReportUnitType>
-  <rd:ReportServerUrl>http://localhost/ReportServer</rd:ReportServerUrl>
+  <rd:ReportServerUrl>https://sql1.ifish.local/ReportServer</rd:ReportServerUrl>
   <rd:ReportID>72598d9a-a0d7-4d99-a014-7a52ac8bfe6f</rd:ReportID>
 </Report>
