@@ -1,5 +1,7 @@
 # Introduction
 
+> seems like Win11 23H2 does not create the Setup key for the previous version anymore. So this is not working anymore. I will try to find a solution for this.
+
 Windows (10/11) in-place Upgrades change/overrides Win32_OperatingSystem.InstallDate. (Original Install Date)
 This makes it hard to find the original installation date or to see the history of in-place upgrades performed on your Win10/11 machines.
 
@@ -67,6 +69,7 @@ Shows details of Current OS, OS History, Partitioning, HW Details, etc.. of a gi
 Reporting\SSRS\Computer_Install_Dates.rdl
 
 ## TODO
+
 - [ ] Spellchecking, Wording and Validation
 - [ ] More Reports
 - [ ] Tests
