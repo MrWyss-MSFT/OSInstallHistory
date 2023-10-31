@@ -99,7 +99,7 @@ $tbl += New-Object psobject -Property ([Ordered]@{OS = "Windows 10"; Version = "
 $tbl += New-Object psobject -Property ([Ordered]@{OS = "Windows 10"; Version = "22H2"; ReleaseID = "2009"; NTVersion = "6.3 (10.0)"; BuildVersion = "19045"; BaseVersion = "19041"; CodeName = "Vibranium (vb)" })
 $tbl += New-Object psobject -Property ([Ordered]@{OS = "Windows 11"; Version = "21H2"; ReleaseID = "2009"; NTVersion = "6.3 (10.0)"; BuildVersion = "22000"; BaseVersion = "22000"; CodeName = "Sun Valley"})
 $tbl += New-Object psobject -Property ([Ordered]@{OS = "Windows 11"; Version = "22H2"; ReleaseID = "2009"; NTVersion = "6.3 (10.0)"; BuildVersion = "22621"; BaseVersion = "22621"; CodeName = "Sun Valley 2"})
-
+$tbl += New-Object psobject -Property ([Ordered]@{OS = "Windows 11"; Version = "23H2"; ReleaseID = "2009"; NTVersion = "6.3 (10.0)"; BuildVersion = "22631"; BaseVersion = "22631"; CodeName = "Sun Valley 3"})
 
 #region Helper Functions
 
